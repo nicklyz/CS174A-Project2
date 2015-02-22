@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A4DCAA4D1A9872D500CC9A20 /* anim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4DCAA4C1A9872D500CC9A20 /* anim.cpp */; };
 		A4DCAA521A9872EB00CC9A20 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4DCAA511A9872EB00CC9A20 /* OpenGL.framework */; };
 		A4DCAA541A9872F000CC9A20 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4DCAA531A9872F000CC9A20 /* GLUT.framework */; };
+		A4DCAA5F1A99660D00CC9A20 /* anim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4DCAA5E1A99660D00CC9A20 /* anim.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,12 +26,12 @@
 
 /* Begin PBXFileReference section */
 		A4DCAA421A9872B100CC9A20 /* project_2 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = project_2; sourceTree = BUILT_PRODUCTS_DIR; };
-		A4DCAA4C1A9872D500CC9A20 /* anim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = anim.cpp; path = "../../../../Dropbox/UCLA courses/Winter 15/CS 174A/project2/MasterTemplate/my code/anim.cpp"; sourceTree = "<group>"; };
-		A4DCAA4E1A9872E100CC9A20 /* Utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Utilities.h; path = "../../../../Dropbox/UCLA courses/Winter 15/CS 174A/project2/MasterTemplate/CS174a template/Utilities.h"; sourceTree = "<group>"; };
-		A4DCAA4F1A9872E100CC9A20 /* Shapes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Shapes.h; path = "../../../../Dropbox/UCLA courses/Winter 15/CS 174A/project2/MasterTemplate/CS174a template/Shapes.h"; sourceTree = "<group>"; };
-		A4DCAA501A9872E100CC9A20 /* Mat_and_Vec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Mat_and_Vec.h; path = "../../../../Dropbox/UCLA courses/Winter 15/CS 174A/project2/MasterTemplate/CS174a template/Mat_and_Vec.h"; sourceTree = "<group>"; };
 		A4DCAA511A9872EB00CC9A20 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		A4DCAA531A9872F000CC9A20 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
+		A4DCAA5E1A99660D00CC9A20 /* anim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = anim.cpp; path = "my code/anim.cpp"; sourceTree = SOURCE_ROOT; };
+		A4DCAA611A99661700CC9A20 /* Mat_and_Vec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mat_and_Vec.h; sourceTree = "<group>"; };
+		A4DCAA621A99661700CC9A20 /* Shapes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Shapes.h; sourceTree = "<group>"; };
+		A4DCAA631A99661700CC9A20 /* Utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utilities.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -50,12 +50,9 @@
 		A4DCAA391A9872B100CC9A20 = {
 			isa = PBXGroup;
 			children = (
+				A4DCAA601A99661700CC9A20 /* CS174a template */,
 				A4DCAA531A9872F000CC9A20 /* GLUT.framework */,
 				A4DCAA511A9872EB00CC9A20 /* OpenGL.framework */,
-				A4DCAA4E1A9872E100CC9A20 /* Utilities.h */,
-				A4DCAA4F1A9872E100CC9A20 /* Shapes.h */,
-				A4DCAA501A9872E100CC9A20 /* Mat_and_Vec.h */,
-				A4DCAA4C1A9872D500CC9A20 /* anim.cpp */,
 				A4DCAA441A9872B100CC9A20 /* project_2 */,
 				A4DCAA431A9872B100CC9A20 /* Products */,
 			);
@@ -72,8 +69,19 @@
 		A4DCAA441A9872B100CC9A20 /* project_2 */ = {
 			isa = PBXGroup;
 			children = (
+				A4DCAA5E1A99660D00CC9A20 /* anim.cpp */,
 			);
 			path = project_2;
+			sourceTree = "<group>";
+		};
+		A4DCAA601A99661700CC9A20 /* CS174a template */ = {
+			isa = PBXGroup;
+			children = (
+				A4DCAA611A99661700CC9A20 /* Mat_and_Vec.h */,
+				A4DCAA621A99661700CC9A20 /* Shapes.h */,
+				A4DCAA631A99661700CC9A20 /* Utilities.h */,
+			);
+			path = "CS174a template";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -132,7 +140,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A4DCAA4D1A9872D500CC9A20 /* anim.cpp in Sources */,
+				A4DCAA5F1A99660D00CC9A20 /* anim.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -246,6 +254,7 @@
 				A4DCAA4B1A9872B100CC9A20 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

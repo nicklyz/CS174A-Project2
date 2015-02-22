@@ -44,7 +44,7 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "YES"
-      customWorkingDirectory = "/Users/NickLiu/Dropbox/UCLA courses/Winter 15/CS 174A/project2/MasterTemplate/my code"
+      customWorkingDirectory = "/Users/NickLiu/Documents/Projects/CS174A/project_2/my code"
       buildConfiguration = "Debug"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"

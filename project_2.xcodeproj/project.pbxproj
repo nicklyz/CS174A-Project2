@@ -32,6 +32,8 @@
 		A4DCAA611A99661700CC9A20 /* Mat_and_Vec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mat_and_Vec.h; sourceTree = "<group>"; };
 		A4DCAA621A99661700CC9A20 /* Shapes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Shapes.h; sourceTree = "<group>"; };
 		A4DCAA631A99661700CC9A20 /* Utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utilities.h; sourceTree = "<group>"; };
+		A4F4D0291A9D808700740B81 /* fshader.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = fshader.glsl; path = "my code/fshader.glsl"; sourceTree = SOURCE_ROOT; };
+		A4F4D02A1A9D808700740B81 /* vshader.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = vshader.glsl; path = "my code/vshader.glsl"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,6 +71,8 @@
 		A4DCAA441A9872B100CC9A20 /* project_2 */ = {
 			isa = PBXGroup;
 			children = (
+				A4F4D0291A9D808700740B81 /* fshader.glsl */,
+				A4F4D02A1A9D808700740B81 /* vshader.glsl */,
 				A4DCAA5E1A99660D00CC9A20 /* anim.cpp */,
 			);
 			path = project_2;

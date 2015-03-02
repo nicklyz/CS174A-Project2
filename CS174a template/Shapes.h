@@ -248,6 +248,7 @@ const int numCylVertices = numCylDivisions * 12;
 
 point4 cylPoints [numCylVertices];
 point3 cylNormals[numCylVertices];
+point2 cylUVs[numCylVertices];
 
 void generateCylinder(GLuint program, ShapeData* cylData)
 {
@@ -285,5 +286,11 @@ void generateCylinder(GLuint program, ShapeData* cylData)
     setVertexAttrib(program,
                     (float*)cylPoints,  sizeof(cylPoints),
                     (float*)cylNormals, sizeof(cylNormals),
-                    0, 0 );
+                    (float*)cylUVs,     sizeof(cylUVs));
 }
+
+
+//----------------------------------------------------------------------------
+// My Shape: Shoe
+
+const int numCarVerteces = 1;

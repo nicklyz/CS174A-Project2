@@ -291,6 +291,7 @@ void generateCylinder(GLuint program, ShapeData* cylData)
 
 
 //----------------------------------------------------------------------------
-// My Shape: Shoe
+// My Shape: Basketball Hoop
 
-const int numCarVerteces = 1;
+//const int numHoopDivisions = 32;
+//const int numHoopVertices = numConeDivisions * 6;

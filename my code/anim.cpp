@@ -17,14 +17,27 @@ const int RUN_ARM   = 4;
 
 const int BEND_LEG  = 1;
 const int RUN_LEG   = 2;
+const int EXT_LEG   = 3;
+
+const int BEND_BODY = 1;
+const int EXT_BODY  = 2;
+const int RUN_BODY  = 3;
+const int JUMP_BODY = 4;
+
+const int DISTANCE_RUN  = 35;
+const int DISTANCE_JUMP = 10;
+const int HEIGHT_JUMP   = 20;
+const int HEIGHT_BALL1  = 10;
+const int HEIGHT_BALL2  = 25;
+const int HEIGHT_BASKET = 10;
 
 const unsigned X = 0, Y = 1, Z = 2;
 
-vec4 eye( 0, 0, 15, 1), ref( 0, 0, 0, 1 ), up( 0, 1, 0, 0 );	// The eye point and look-at point.
+vec4 eye(70, 0, 0, 1), ref( 0, 0, 50, 1 ), up( 0, 1, 0, 0 );	// The eye point and look-at point.
 
 mat4	orientation, model_view;
 ShapeData cubeData, sphereData, coneData, cylData;				// Structs that hold the Vertex Array Object index and number of vertices of each shape.
-GLuint	texture_cube, texture_basketball, texture_jersey;
+GLuint	texture_cube, texture_basketball, texture_jersey, texture_dunk;
 GLint   uModelView, uProjection, uView,
 		uAmbient, uDiffuse, uSpecular, uLightPos, uShininess,
 		uTex, uEnableTex;
@@ -34,15 +47,17 @@ void init()
 {
 #ifdef EMSCRIPTEN
     GLuint program = LoadShaders( "vshader.glsl", "fshader.glsl" );								// Load shaders and use the resulting shader program
-    TgaImage coolImage ("challenge.tga");    
+    TgaImage courtImage ("UCLA.tga");
     TgaImage basketballImage("earth.tga");
     TgaImage jerseyImage("jersey.tga");
+    TgaImage dunkImage("spritedunk.tga");
 
 #else
 	GLuint program = LoadShaders( "../my code/vshader.glsl", "../my code/fshader.glsl" );		// Load shaders and use the resulting shader program
-    TgaImage coolImage ("../my code/challenge.tga");    
+    TgaImage courtImage ("../my code/UCLA.tga");
     TgaImage basketballImage("../my code/basketball.tga");
     TgaImage jerseyImage("../my code/jersey.tga");
+    TgaImage dunkImage("../my code/spritedunk.tga");
 #endif
     glUseProgram(program);
 
@@ -73,9 +88,9 @@ void init()
     glGenTextures( 1, &texture_cube );
     glBindTexture( GL_TEXTURE_2D, texture_cube );
     
-    glTexImage2D(GL_TEXTURE_2D, 0, 4, coolImage.width, coolImage.height, 0,
-                 (coolImage.byteCount == 3) ? GL_BGR : GL_BGRA,
-                 GL_UNSIGNED_BYTE, coolImage.data );
+    glTexImage2D(GL_TEXTURE_2D, 0, 4, courtImage.width, courtImage.height, 0,
+                 (courtImage.byteCount == 3) ? GL_BGR : GL_BGRA,
+                 GL_UNSIGNED_BYTE, courtImage.data );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
@@ -100,6 +115,17 @@ void init()
     glTexImage2D(GL_TEXTURE_2D, 0, 4, jerseyImage.width, jerseyImage.height, 0,
                  (jerseyImage.byteCount == 3) ? GL_BGR : GL_BGRA,
                  GL_UNSIGNED_BYTE, jerseyImage.data );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    
+    glGenTextures( 1, &texture_dunk );
+    glBindTexture( GL_TEXTURE_2D, texture_dunk );
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, 4, dunkImage.width, dunkImage.height, 0,
+                 (dunkImage.byteCount == 3) ? GL_BGR : GL_BGRA,
+                 GL_UNSIGNED_BYTE, dunkImage.data );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
@@ -189,6 +215,26 @@ void drawCube()		// draw a cube with dimensions 1,1,1 centered around the origin
 //    glUniform1i( uEnableTex, 0 );
 }
 
+void drawTextCube() // draw a cube with dimension 1,1,1 with texture
+{
+    glBindTexture( GL_TEXTURE_2D, texture_cube );
+    glUniform1i( uEnableTex, 1 );
+    glUniformMatrix4fv( uModelView, 1, GL_FALSE, transpose(model_view) );
+    glBindVertexArray( cubeData.vao );
+    glDrawArrays( GL_TRIANGLES, 0, cubeData.numVertices );
+    glUniform1i( uEnableTex, 0 );
+}
+
+void drawDunk() // draw a cube with dimension 1,1,1 with texture
+{
+    glBindTexture( GL_TEXTURE_2D, texture_dunk );
+    glUniform1i( uEnableTex, 1 );
+    glUniformMatrix4fv( uModelView, 1, GL_FALSE, transpose(model_view) );
+    glBindVertexArray( cubeData.vao );
+    glDrawArrays( GL_TRIANGLES, 0, cubeData.numVertices );
+    glUniform1i( uEnableTex, 0 );
+}
+
 void drawSphere()	// draw a sphere with radius 1 centered around the origin.
 {
     glUniformMatrix4fv( uModelView, 1, GL_FALSE, transpose(model_view) );
@@ -257,67 +303,84 @@ void drawAxes(int selected)
 	set_color( colors.top().r, colors.top().g, colors.top().b );
 }
 
-void drawGround(){
-	mvstack.push(model_view);
+void drawGround(float level)
+{
+    mvstack.push(model_view);
     set_color( .0, .8, .0 );
-    model_view *= Translate	(0, -10, 0);									drawAxes(basis_id++);
-    model_view *= Scale		(100, 0.5, 100);								drawAxes(basis_id++);
-    drawCube();
-	model_view = mvstack.top(); mvstack.pop();								drawAxes(basis_id++);
+    model_view *= Translate	(0, level, 0);									drawAxes(basis_id++);
+    model_view *= Scale	(284/2, 0.2, 423/2);								drawAxes(basis_id++);
+    drawTextCube();
+    model_view = mvstack.top(); mvstack.pop();								drawAxes(basis_id++);
 }
 
-void drawShapes()
+//void drawShapes()
+//{
+//	mvstack.push(model_view);
+//    model_view *= Translate	( 0, 3, 0 );									drawAxes(basis_id++);
+//    model_view *= Scale		( 3, 3, 3 );									drawAxes(basis_id++);
+//    set_color( .8, .0, .8 );
+//    drawCube();
+//
+//    model_view *= Scale		( 1/3.0f, 1/3.0f, 1/3.0f );						drawAxes(basis_id++);
+//    model_view *= Translate	( 0, 3, 0 );									drawAxes(basis_id++);
+//    set_color( 0, 1, 0 );
+//    drawCone();
+//
+//    model_view *= Translate	( 0, 3, 0 );									drawAxes(basis_id++);
+//    set_color( 1, 1, 0 );
+//    drawCylinder();
+//
+//	model_view = mvstack.top(); mvstack.pop();								drawAxes(basis_id++);
+//	
+//    model_view *= Scale		( 1/3.0f, 1/3.0f, 1/3.0f );						drawAxes(basis_id++);
+//
+//	drawGround();
+//}
+
+void drawBallStage(float height, int stage, float progress)
 {
-	mvstack.push(model_view);
-
-    model_view *= Translate	( 0, 3, 0 );									drawAxes(basis_id++);
-    model_view *= Scale		( 3, 3, 3 );									drawAxes(basis_id++);
-    set_color( .8, .0, .8 );
-    drawCube();
-
-    model_view *= Scale		( 1/3.0f, 1/3.0f, 1/3.0f );						drawAxes(basis_id++);
-    model_view *= Translate	( 0, 3, 0 );									drawAxes(basis_id++);
-    set_color( 0, 1, 0 );
-    drawCone();
-
-    model_view *= Translate	( 0, 3, 0 );									drawAxes(basis_id++);
-    set_color( 1, 1, 0 );
-    drawCylinder();
-
-	model_view = mvstack.top(); mvstack.pop();								drawAxes(basis_id++);
-	
-    model_view *= Scale		( 1/3.0f, 1/3.0f, 1/3.0f );						drawAxes(basis_id++);
-
-	drawGround();
-}
-
-void drawBall()
-{
+    mvstack.push(model_view);
+    model_view *= Translate(0, height, 0);
     // This function defines a sequence of events of the ball
-    // 1. in player's hand
-    // 2. first shot
-    // 3. in player's hand
-    // 4. second shot
-    // 5. dunk
-    
-    float height = 4.0f;
-    float progress = 0.0f;
-    
-    float firstWaitEnd = 5.0f;
-    float firstShootEnd = 8.0f;
-    float secondWaitEnd = 10.f;
-    float secondShootEnd = 13.0f;
-    float runEnd = 15.0f;
-    float jumpEnd = 18.0f;
-    
-    drawBasketball();
+    switch (stage) {
+        case 1:
+        case 2:
+            break;
+        case 3: // run toward the basket
+            // from player's hand, fly toward basket
+            // inital position
+            model_view *= Translate(0, HEIGHT_BALL1 - HEIGHT_BALL1 * 4 * (progress - 0.5)*(progress - 0.5), 40 * progress);
+            model_view *= RotateX(-120 );
+            model_view *= Translate(0, -4, 0);
+            model_view *= RotateX(-30*progress);
+            drawBasketball();
+            break;
+        case 6:
+            model_view *= Translate(0, HEIGHT_BALL2 * sin(progress*95*DegreesToRadians), DISTANCE_RUN * progress);
+            model_view *= RotateX(-120 );
+            model_view *= Translate(0, -4, 0);
+            model_view *= RotateX(-30*progress);
+            drawBasketball();
+            break;
+        case 7:
+            model_view *= Translate(0, HEIGHT_BALL2 * sin((95 + 35*progress)*DegreesToRadians), DISTANCE_RUN + DISTANCE_JUMP * progress);
+            model_view *= RotateX(-120 );
+            model_view *= Translate(0, -4, 0);
+            model_view *= RotateX(-30*progress);
+            drawBasketball();
+            break;
+        default:
+            break;
+    }
+    model_view = mvstack.top(); mvstack.pop();
 }
 
 void drawHead()
 {
     set_color(1.0f, 0, 0);
     mvstack.push(model_view);
-    model_view *= Translate(0, 3, 0);
+    model_view *= Translate(0, 2.8, 0);
+    model_view *= Scale(0.8, 0.8, 0.8);
     drawSphere();
     
     model_view = mvstack.top(); mvstack.pop();
@@ -334,7 +397,7 @@ void drawManArm(float angle, float z_angle)    // draw a single arm
     model_view *= Translate(0, -1, 0);
     model_view *= RotateZ(z_angle);
     model_view *= RotateX(-angle);
-   
+    
     // lower arm
     model_view *= Translate(0, -1, 0);
     model_view *= Scale(0.1, 2.0, 0.1);
@@ -350,7 +413,7 @@ void drawManBodyArms(int action, float progress, bool withBall)
 //    const int SHOOT_ARM = 3;
 //    const int RUN_ARM = 4;
     
-    set_color(0.8f, 1.0f, 1.0f);
+    set_color(1.0f, 1.0f, 1.0f);
     
     // Right upper arm
     mvstack.push(model_view);
@@ -358,31 +421,78 @@ void drawManBodyArms(int action, float progress, bool withBall)
     
     switch (action) {
         case RAISE_ARM:
+            model_view *= RotateX(-100 * progress);
             model_view *= RotateZ(-30);
-            model_view *= RotateX(-80 * progress);
             drawManArm(50, 30);
             
             model_view = mvstack.top();
             model_view *= Translate(0, 2, 0);
+            model_view *= RotateX(-100 * progress);
             model_view *= RotateZ(30);
-            model_view *= RotateX(-80 * progress);
             drawManArm(50, -30);
             if (withBall) {
                 model_view = mvstack.top();
                 model_view *= Translate(0, 2, 0);
-                model_view *= RotateX(-80 * progress);
+                model_view *= RotateX(-100 * progress);
                 model_view *= Translate(0, -2, 0);
                 model_view *= RotateX(-50);
                 model_view *= Translate(0, -2, 0);
                 //model_view *= Scale(0.8, 0.8, 0.8);
-                drawBall();
+                drawBasketball();
             }
             break;
         case LOWER_ARM:
+            model_view *= RotateX(-120 + 120 * progress);
+            model_view *= RotateZ(-30);
+            drawManArm(50 * progress, 30);
+            
+            model_view = mvstack.top();
+            model_view *= Translate(0, 2, 0);
+            model_view *= RotateX(-120 + 120 * progress);
+            model_view *= RotateZ(30);
+            drawManArm(50 * progress, -30);
+            if (withBall) {
+                model_view = mvstack.top();
+                model_view *= Translate(0, 2, 0);
+                model_view *= RotateX(-120 + 120 * progress);
+                model_view *= Translate(0, -2, 0);
+                model_view *= RotateX(-50 * progress);
+                model_view *= Translate(0, -2, 0);
+                //model_view *= Scale(0.8, 0.8, 0.8);
+                drawBasketball();
+            }
             break;
         case SHOOT_ARM:
+            model_view *= RotateX(-100 - 20 * progress);
+            model_view *= RotateZ(-30);
+            drawManArm(50 - 50 * progress, 30);
+            
+            model_view = mvstack.top();
+            model_view *= Translate(0, 2, 0);
+            model_view *= RotateX(-100 - 20 * progress);
+            model_view *= RotateZ(30);
+            drawManArm(50 - 50 * progress, -30);
+            if (withBall) {
+                model_view = mvstack.top();
+                model_view *= Translate(0, 2, 0);
+                model_view *= RotateX(-100 - 20 * progress);
+                model_view *= Translate(0, -2, 0);
+                model_view *= RotateX(50 * progress - 50);
+                model_view *= Translate(0, -2, 0);
+                //model_view *= Scale(0.8, 0.8, 0.8);
+                drawBasketball();
+            }
             break;
         case RUN_ARM:
+            model_view *= RotateX(10 - 60 * cos(progress*360*2*DegreesToRadians));
+            model_view *= RotateZ(-30);
+            drawManArm(50, 30);
+            
+            model_view = mvstack.top();
+            model_view *= Translate(0, 2, 0);
+            model_view *= RotateX(10 - 60 * cos(progress*360*2*DegreesToRadians + 180*DegreesToRadians));
+            model_view *= RotateZ(30);
+            drawManArm(50, -30);
             break;
         default:        // arms are still
             model_view *= RotateZ(-30);
@@ -396,7 +506,7 @@ void drawManBodyArms(int action, float progress, bool withBall)
                 model_view *= RotateX(-50);
                 model_view *= Translate(0, -2, 0);
                 //model_view *= Scale(0.8, 0.8, 0.8);
-                drawBall();
+                drawBasketball();
             }
             break;
     }
@@ -410,16 +520,18 @@ void drawManLeg(float angle, float z_angle)
     // upper leg
     model_view *= Translate(0, -1, 0);
     model_view *= Scale(0.1, 2.0, 0.1);
-    drawCube(); // upper arm
+    drawCube();
     model_view *= Scale(10, 0.5, 10);
     model_view *= Translate(0, -1, 0);
-    model_view *= RotateX(angle);   // angle is positive, different than arm
     model_view *= RotateZ(z_angle);
+    model_view *= RotateX(angle);   // angle is positive, different than arm
+    
     // lower leg
     model_view *= Translate(0, -1, 0);
     model_view *= Scale(0.1, 2.0, 0.1);
     drawCube();
     model_view = mvstack.top(); mvstack.pop();
+    
 }
 
 void drawManBodyLegs(int action, float progress)
@@ -427,24 +539,39 @@ void drawManBodyLegs(int action, float progress)
     // action defines the movement of the leg:
     //    const int BEND_LEG = 1;
     //    const int RUN_LEG = 2;
-    set_color(0.8f, 1.0f, 1.0f);
+    set_color(1.0f, 1.0f, 1.0f);
     
     mvstack.push(model_view);
     model_view *= Translate(0, -2, 0);
     
     switch (action) {
         case BEND_LEG:
-            model_view *= RotateX(-45*progress);
+            model_view *= RotateX(-10 - 35*progress);
             model_view *= RotateZ(-30);
-            drawManLeg(20+45*progress, 30);
+            drawManLeg(20+70*progress, 30);
             model_view *= RotateZ(60);
-            drawManLeg(20+45*progress, -30);
+            drawManLeg(20+70*progress, -30);
             break;
         case RUN_LEG:
+            model_view *= RotateX(-10 - 60 * cos(progress*360*2*DegreesToRadians + 180*DegreesToRadians));
+            model_view *= RotateZ(-30);
+            drawManLeg(50, 30);
             
+            model_view = mvstack.top();
+            model_view *= Translate(0, -2, 0);
+            model_view *= RotateX(-10 - 60 * cos(progress*360*2*DegreesToRadians));
+            model_view *= RotateZ(30);
+            drawManLeg(20, -30);
+            break;
+        case EXT_LEG:
+            model_view *= RotateX(-45 + 35*progress);
+            model_view *= RotateZ(-30);
+            drawManLeg(90-70*progress, 30);
+            model_view *= RotateZ(60);
+            drawManLeg(90-70*progress, -30);
             break;
         default:        // arms are still
-            model_view *= RotateX(-20);
+            model_view *= RotateX(-10);
             model_view *= RotateZ(-30);
             drawManLeg(20, 30);
             model_view *= RotateZ(60);
@@ -457,14 +584,32 @@ void drawManBodyLegs(int action, float progress)
 
 void drawManBody(float height, int action, float progress)
 {
-    set_color(0.8f, 1.0f, 1.0f);
+    set_color(1.0f, 1.0f, 1.0f);
     model_view *= Translate(0, height-2, 0);
+    switch (action) {
+        case BEND_BODY:
+            model_view *= Translate(0, 4 * cos((10 + 35 * progress)*DegreesToRadians) - 3.99, 0);
+            break;
+        case EXT_BODY:
+            model_view *= Translate(0, 4 * cos((45 - 35 * progress)*DegreesToRadians) - 3.99, 0);
+            break;
+        case RUN_BODY:
+            model_view *= Translate(0, 0, DISTANCE_RUN * progress);
+            break;
+        case JUMP_BODY:
+            model_view *= Translate(0, HEIGHT_JUMP * progress, DISTANCE_RUN + DISTANCE_JUMP * progress);
+            break;
+        default:
+            break;
+    }
     model_view *= Scale(0.1, 4, 0.1);
     drawCube();
     model_view *= Scale(10, 0.25, 10);
     // model_view would be at the center of the body
 }
 
+const bool WITHBALL     = true;
+const bool WITHOUTBALL  = false;
 void drawManStage(float height, int stage, float progress)
 {
     mvstack.push(model_view);
@@ -475,25 +620,84 @@ void drawManStage(float height, int stage, float progress)
     {
         case 1: // first wait
             drawManBody(height, 0, progress);
-            drawManBodyArms(0, progress, true);
+            drawManBodyArms(0, progress, WITHBALL);
             drawManBodyLegs(0, progress);
             drawHead();
             break;
         case 2: // first shoot
+                // raise arm, bend leg for first half
+                // shoot arm, extend leg for second half
+        case 5: //shoots one more time
+            if (progress < 0.7) {
+                drawManBody(height, BEND_BODY, progress / 0.7);
+                drawManBodyArms(RAISE_ARM, progress / 0.7, WITHBALL);
+                drawManBodyLegs(BEND_LEG, progress / 0.7);
+                drawHead();
+            }
+            else {
+                progress = progress - 0.7;
+                drawManBody(height, EXT_BODY, progress / 0.3);
+                drawManBodyArms(SHOOT_ARM, progress / 0.3, WITHBALL);
+                drawManBodyLegs(EXT_LEG, progress / 0.3);
+                drawHead();
+            }
+            break;
+        case 3: // run toward basket:
+        case 6: // second run
+            if (progress < 0.3) {   // lower arm
+                drawManBody(height, 0, progress * 3.33);
+                drawManBodyArms(LOWER_ARM, progress * 3.33, WITHOUTBALL);
+                drawManBodyLegs(0, progress * 3.33);
+                drawHead();
+            }
+            else { // run arm
+                progress = progress - 0.3;
+                drawManBody(height, RUN_BODY, progress / 0.7);
+                drawManBodyArms(RUN_ARM, progress / 0.7, WITHOUTBALL);
+                drawManBodyLegs(RUN_LEG, progress / 0.7);
+                drawHead();
+            }
+            break;
+        case 4: // wait
+            
+            if (progress<0.5) {
+                model_view *= Translate(0, 0, DISTANCE_RUN);
+            }
             drawManBody(height, 0, progress);
-            drawManBodyArms(RAISE_ARM, progress, true);
+            drawManBodyArms(0, progress, WITHBALL);
+            drawManBodyLegs(0, progress);
+            drawHead();
+            break;
+        case 7: // jump
+            drawManBody(height, JUMP_BODY, progress);
+            drawManBodyArms(RAISE_ARM, progress, WITHOUTBALL);
+            drawManBodyLegs(EXT_LEG, progress);
+            drawHead();
+            break;
+        case 8: // wait in the air
+            model_view *= Translate(0, HEIGHT_JUMP, DISTANCE_RUN+DISTANCE_JUMP);
+            drawManBody(height, 0, progress);
+            drawManBodyArms(SHOOT_ARM, progress, WITHBALL);
+            drawManBodyLegs(EXT_LEG, progress);
+            drawHead();
+            break;
+        case 9: // dunk!!!!!!!!
+            model_view *= Translate(0, HEIGHT_JUMP*(1-progress/3), DISTANCE_RUN+DISTANCE_JUMP+10*progress);
+            drawManBody(height, 0, progress);
+            drawManBodyArms(LOWER_ARM, progress/2, WITHBALL);
+            drawManBodyLegs(0, progress);
+            drawHead();
+            break;
+        case 10:    // fall
+            model_view *= Translate(0, HEIGHT_JUMP*(0.66 - 0.66*progress), DISTANCE_JUMP+DISTANCE_RUN+10);
+            drawManBody(height, 0, progress);
+            drawManBodyArms(LOWER_ARM, 0.5+progress/2, WITHBALL);
             drawManBodyLegs(BEND_LEG, progress);
             drawHead();
             break;
-//        case 3:
-//            break;
-//        case 4:
-//            break;
-//        case 5:
-//            break;
         default:
             drawManBody(height, 0, progress);
-            drawManBodyArms(0, progress, true);
+            drawManBodyArms(0, progress, WITHBALL);
             drawManBodyLegs(0, progress);
             drawHead();
             break;
@@ -523,15 +727,15 @@ void drawMan(float ground_level)
     float progress = 0.0f;
     
     float firstWaitEnd = 5.0f;
-    float firstShootEnd = 6.5f;
-    float firstRunEnd = 9.0f;
-    float secondWaitEnd = 11.0f;
-    float secondShootEnd = 12.5f;
-    float secondRunEnd = 15.0f;
-    float jumpEnd = 18.0f;
-    float thirdWaitEnd = 20.0f;
-    float dunkEnd = 21.5f;
-    float fallEnd = 23.0f;
+    float firstShootEnd = 7.0f;
+    float firstRunEnd = 10.0f;
+    float secondWaitEnd = 14.0;
+    float secondShootEnd = 16.0f;
+    float secondRunEnd = 19.0f;
+    float jumpEnd = 20.0f;
+    float thirdWaitEnd = 26.0f;
+    float dunkEnd = 29.0f;
+    float fallEnd = 31.0f;
     
     
     float init_z = 10.0f;
@@ -543,6 +747,7 @@ void drawMan(float ground_level)
 //    drawManBodyArms(0, progress, false);
     
     int stage = 0;
+    
     
     if (TIME <= 0.0f){
         progress = 0;
@@ -607,54 +812,36 @@ void drawMan(float ground_level)
         stage = 11;
     }
     drawManStage(height, stage, progress);
+    drawBallStage(height, stage, progress);
     
 }
 
 
 
-void drawPlanets()
-{
-    set_color( .8, .0, .0 );	//model sun
-    mvstack.push(model_view);
-    model_view *= Scale(3);													drawAxes(basis_id++);
-    drawSphere();
-    model_view = mvstack.top(); mvstack.pop();								drawAxes(basis_id++);
-    
-    set_color( .0, .0, .8 );	//model earth
-    model_view *= RotateY	( 10*TIME );									drawAxes(basis_id++);
-    model_view *= Translate	( 15, 5*sin( 30*DegreesToRadians*TIME ), 0 );	drawAxes(basis_id++);
-    mvstack.push(model_view);
-    model_view *= RotateY( 300*TIME );										drawAxes(basis_id++);
-    drawCube();
-    model_view = mvstack.top(); mvstack.pop();								drawAxes(basis_id++);
-    
-    set_color( .8, .0, .8 );	//model moon
-    model_view *= RotateY	( 30*TIME );									drawAxes(basis_id++);
-    model_view *= Translate	( 2, 0, 0);										drawAxes(basis_id++);
-    model_view *= Scale(0.2);												drawAxes(basis_id++);
-    drawCylinder();
-	
-}
+//void drawPlanets()
+//{
+//    set_color( .8, .0, .0 );	//model sun
+//    mvstack.push(model_view);
+//    model_view *= Scale(3);													drawAxes(basis_id++);
+//    drawSphere();
+//    model_view = mvstack.top(); mvstack.pop();								drawAxes(basis_id++);
+//    
+//    set_color( .0, .0, .8 );	//model earth
+//    model_view *= RotateY	( 10*TIME );									drawAxes(basis_id++);
+//    model_view *= Translate	( 15, 5*sin( 30*DegreesToRadians*TIME ), 0 );	drawAxes(basis_id++);
+//    mvstack.push(model_view);
+//    model_view *= RotateY( 300*TIME );										drawAxes(basis_id++);
+//    drawCube();
+//    model_view = mvstack.top(); mvstack.pop();								drawAxes(basis_id++);
+//    
+//    set_color( .8, .0, .8 );	//model moon
+//    model_view *= RotateY	( 30*TIME );									drawAxes(basis_id++);
+//    model_view *= Translate	( 2, 0, 0);										drawAxes(basis_id++);
+//    model_view *= Scale(0.2);												drawAxes(basis_id++);
+//    drawCylinder();
+//	
+//}
 
-void drawMidterm()
-{
-	mvstack.push(model_view);
-	mvstack.push(model_view);
-	model_view *= Translate	( -1, 0, 0 );									drawAxes(basis_id++);
-	model_view *= Scale		( 2, 1, 1 );									drawAxes(basis_id++);
-	drawCube();
-	model_view = mvstack.top(); mvstack.pop();								drawAxes(basis_id++);
-	
-	model_view *= Scale		( 2, 1, 1 );									drawAxes(basis_id++);
-	model_view *= Translate	( 1, 0, 0 );									drawAxes(basis_id++);
-	drawCube();
-
-	
-	model_view *= Translate	( 0, 2, 0 );									drawAxes(basis_id++);
-	model_view *= RotateZ	( 90 + 360 * TIME );							drawAxes(basis_id++);
-	drawCube();
-	model_view = mvstack.top(); mvstack.pop();								drawAxes(basis_id++);
-}
 
 double PREV_TIME = 0;
 int frameNumber = 0;
@@ -671,8 +858,8 @@ void display(void) {
     average = a * newMeasurement+ (1 - a) * average;   // smoothing of measuring frame rate
     
     if (frameNumber % 10 == 0) {
-    std::cout << "Frame rate: " ;
-    std::cout << average << std::endl;
+        std::cout << "Frame rate: " ;
+        std::cout << average << std::endl;
     }
     
         PREV_TIME = TIME;
@@ -685,35 +872,77 @@ void display(void) {
 	set_color( .6, .6, .6 );
 	
     vec4 rotatedEye, rotatedRef;
-//    
-//    float rotationBeginTime = 1;
-//    float timeToRotate = 7;
-//    float rotationSceneTime = TIME - rotationBeginTime;
-//    
-//    if( rotationSceneTime > 0 && rotationSceneTime < timeToRotate ) { // 360 scene
-//        //eye = RotateY(360/timeToRotate * rotationSceneTime) * unRotatedPoint;
-//        rotatedEye = RotateY(360/timeToRotate * rotationSceneTime) * eye;
-//        //rotatedEye = Translate(0, 0, -TIME) * eye;
-//        model_view = LookAt(rotatedEye, ref, up);
-//    }
-//    else
-//        model_view = LookAt(eye, ref, up);
-//    
-//    if( 0 < TIME && TIME < rotationBeginTime )
-//        rotatedEye = eye;
     
-	model_view = LookAt( eye, ref, up );
-
+    float rotationBeginTime = 1;
+    float timeToRotate = 5;
+    float rotationSceneTime = TIME - rotationBeginTime;
+    
+    float phantomBeginTime = 21;
+    float timeToPhantom = 5;
+    float phantomSceneTime = TIME - phantomBeginTime;
+    
+    if( rotationSceneTime > 0 && rotationSceneTime < timeToRotate ) { // 360 scene
+        //eye = RotateY(360/timeToRotate * rotationSceneTime) * unRotatedPoint;
+        rotatedEye = RotateY(360/timeToRotate * rotationSceneTime) * eye;
+        //rotatedEye = Translate(0, 0, -TIME) * eye;
+        model_view = LookAt(rotatedEye, ref, up);
+    }
+    else if (phantomSceneTime > 0 && phantomSceneTime < timeToPhantom){ // phantom cam scene
+        vec4 target (0, 10, 0, 1);
+        vec4 camera (30, 10, 0, 1);
+        rotatedEye = RotateY(360/timeToPhantom * phantomSceneTime) * camera;
+        model_view = LookAt(rotatedEye, target, up);
+        model_view *= Translate(0, 0, -85);
+    }
+    else model_view = LookAt(eye, ref, up);
+    
+    if( 0 < TIME && TIME < rotationBeginTime )
+        rotatedEye = eye;
+    
+	// model_view = LookAt( eye, ref, up );
+    
 	model_view *= orientation;
     model_view *= Scale(zoom);												drawAxes(basis_id++);
-
-	//drawMidterm();
-    //model_view *= Translate( 0, -6, 0 );									drawAxes(basis_id++);
-
+    drawGround(GROUND_LEVEL);                                                           drawAxes(basis_id++);
+    
+    // draw table:
+    set_color(1, 1, 1);
+    mvstack.push(model_view);
+    model_view *= Translate(-10, GROUND_LEVEL+2, 20);
+    model_view *= RotateY(30);
+    model_view *= Scale(15,4,4);
+    drawCube();
+    model_view *= Translate(0, 0, 0.5);
+    model_view *= Scale(1, 1, 0.01);
+    drawDunk();
+    model_view = mvstack.top(); mvstack.pop();
+    
+    // Banner:
+    mvstack.push(model_view);
+    model_view *= Translate(-40, GROUND_LEVEL+30, 50);
+    model_view *= RotateY(90);
+    model_view *= Scale(45, 12, 0.2);
+    drawDunk();
+    model_view *= Translate(0, 0, -0.5);
+    drawCube();
+    model_view = mvstack.top(); mvstack.pop();
+    
+    // Basketball Hoop
+    mvstack.push(model_view);
+    model_view *= Translate(0, GROUND_LEVEL+10, 100);
+    model_view *= Scale(0.5, 20, 0.5);
+    set_color(0.753, 0.753, 0.753);
+    drawCube();
+    model_view *= Translate(0, 0.5, 0);
+    //model_view *= Scale(2, 1/20, 2);
+    model_view *= Scale(20, 0.4, 1);
+    model_view *= Translate(0, 0.5, 0);
+    set_color(0.957, 0.643, 0.376);
+    drawCube();
+    model_view = mvstack.top(); mvstack.pop();
     
     
-    drawGround();
-    
+    model_view *= Translate(0, 0, 40);
     drawMan(GROUND_LEVEL);
     
     glutSwapBuffers();

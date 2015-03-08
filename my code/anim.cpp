@@ -33,10 +33,10 @@ const int HEIGHT_BASKET = 10;
 
 const unsigned X = 0, Y = 1, Z = 2;
 
-vec4 eye(70, 0, 0, 1), ref( 0, 0, 50, 1 ), up( 0, 1, 0, 0 );	// The eye point and look-at point.
+vec4 eye(70, 0, 0, 1), ref( 0, 0, 0, 1 ), up( 0, 1, 0, 0 );	// The eye point and look-at point.
 
 mat4	orientation, model_view;
-ShapeData cubeData, sphereData, coneData, cylData;				// Structs that hold the Vertex Array Object index and number of vertices of each shape.
+ShapeData cubeData, sphereData, coneData, cylData, hoopData;				// Structs that hold the Vertex Array Object index and number of vertices of each shape.
 GLuint	texture_cube, texture_basketball, texture_jersey, texture_dunk;
 GLint   uModelView, uProjection, uView,
 		uAmbient, uDiffuse, uSpecular, uLightPos, uShininess,
@@ -215,6 +215,12 @@ void drawCube()		// draw a cube with dimensions 1,1,1 centered around the origin
 //    glUniform1i( uEnableTex, 0 );
 }
 
+void drawHoop()
+{
+    glUniformMatrix4fv( uModelView, 1, GL_FALSE, transpose(model_view) );
+    glBindVertexArray( hoopData.vao );
+    glDrawArrays( GL_TRIANGLES, 0, hoopData.numVertices );
+}
 void drawTextCube() // draw a cube with dimension 1,1,1 with texture
 {
     glBindTexture( GL_TEXTURE_2D, texture_cube );
@@ -881,70 +887,78 @@ void display(void) {
     float timeToPhantom = 5;
     float phantomSceneTime = TIME - phantomBeginTime;
     
-    if( rotationSceneTime > 0 && rotationSceneTime < timeToRotate ) { // 360 scene
-        //eye = RotateY(360/timeToRotate * rotationSceneTime) * unRotatedPoint;
-        rotatedEye = RotateY(360/timeToRotate * rotationSceneTime) * eye;
-        //rotatedEye = Translate(0, 0, -TIME) * eye;
-        model_view = LookAt(rotatedEye, ref, up);
-    }
-    else if (phantomSceneTime > 0 && phantomSceneTime < timeToPhantom){ // phantom cam scene
-        vec4 target (0, 10, 0, 1);
-        vec4 camera (30, 10, 0, 1);
-        rotatedEye = RotateY(360/timeToPhantom * phantomSceneTime) * camera;
-        model_view = LookAt(rotatedEye, target, up);
-        model_view *= Translate(0, 0, -85);
-    }
-    else model_view = LookAt(eye, ref, up);
+//    if( rotationSceneTime > 0 && rotationSceneTime < timeToRotate ) { // 360 scene
+//        //eye = RotateY(360/timeToRotate * rotationSceneTime) * unRotatedPoint;
+//        rotatedEye = RotateY(360/timeToRotate * rotationSceneTime) * eye;
+//        //rotatedEye = Translate(0, 0, -TIME) * eye;
+//        model_view = LookAt(rotatedEye, ref, up);
+//    }
+//    else if (phantomSceneTime > 0 && phantomSceneTime < timeToPhantom){ // phantom cam scene
+//        vec4 target (0, 10, 0, 1);
+//        vec4 camera (30, 10, 0, 1);
+//        rotatedEye = RotateY(360/timeToPhantom * phantomSceneTime) * camera;
+//        model_view = LookAt(rotatedEye, target, up);
+//        model_view *= Translate(0, 0, -85);
+//    }
+//    else model_view = LookAt(eye, ref, up);
+//    
+//    if( 0 < TIME && TIME < rotationBeginTime )
+//        rotatedEye = eye;
+//    
+//	// model_view = LookAt( eye, ref, up );
+//    
+//	model_view *= orientation;
+//    model_view *= Scale(zoom);												drawAxes(basis_id++);
+//    drawGround(GROUND_LEVEL);                                                           drawAxes(basis_id++);
+//    
+//    // draw table:
+//    set_color(1, 1, 1);
+//    mvstack.push(model_view);
+//    model_view *= Translate(-10, GROUND_LEVEL+2, 20);
+//    model_view *= RotateY(30);
+//    model_view *= Scale(15,4,4);
+//    drawCube();
+//    model_view *= Translate(0, 0, 0.5);
+//    model_view *= Scale(1, 1, 0.01);
+//    drawDunk();
+//    model_view = mvstack.top(); mvstack.pop();
+//    
+//    // Banner:
+//    mvstack.push(model_view);
+//    model_view *= Translate(-40, GROUND_LEVEL+30, 50);
+//    model_view *= RotateY(90);
+//    model_view *= Scale(45, 12, 0.2);
+//    drawDunk();
+//    model_view *= Translate(0, 0, -0.5);
+//    drawCube();
+//    model_view = mvstack.top(); mvstack.pop();
+//    
+//    // Basketball Hoop
+//    mvstack.push(model_view);
+//    model_view *= Translate(0, GROUND_LEVEL+10, 100);
+//    model_view *= Scale(0.5, 20, 0.5);
+//    set_color(0.753, 0.753, 0.753);
+//    drawCube();
+//    model_view *= Translate(0, 0.5, 0);
+//    //model_view *= Scale(2, 1/20, 2);
+//    model_view *= Scale(20, 0.4, 1);
+//    model_view *= Translate(0, 0.5, 0);
+//    set_color(0.957, 0.643, 0.376);
+//    drawCube();
+//    model_view = mvstack.top(); mvstack.pop();
+//    
+//    
+//    model_view *= Translate(0, 0, 40);
+//    drawMan(GROUND_LEVEL);
     
-    if( 0 < TIME && TIME < rotationBeginTime )
-        rotatedEye = eye;
+    model_view = LookAt(eye, ref, up);
+    model_view *= orientation;
+    model_view *= Scale(zoom);
     
-	// model_view = LookAt( eye, ref, up );
-    
-	model_view *= orientation;
-    model_view *= Scale(zoom);												drawAxes(basis_id++);
-    drawGround(GROUND_LEVEL);                                                           drawAxes(basis_id++);
-    
-    // draw table:
     set_color(1, 1, 1);
-    mvstack.push(model_view);
-    model_view *= Translate(-10, GROUND_LEVEL+2, 20);
-    model_view *= RotateY(30);
-    model_view *= Scale(15,4,4);
-    drawCube();
-    model_view *= Translate(0, 0, 0.5);
-    model_view *= Scale(1, 1, 0.01);
-    drawDunk();
-    model_view = mvstack.top(); mvstack.pop();
-    
-    // Banner:
-    mvstack.push(model_view);
-    model_view *= Translate(-40, GROUND_LEVEL+30, 50);
-    model_view *= RotateY(90);
-    model_view *= Scale(45, 12, 0.2);
-    drawDunk();
-    model_view *= Translate(0, 0, -0.5);
-    drawCube();
-    model_view = mvstack.top(); mvstack.pop();
-    
-    // Basketball Hoop
-    mvstack.push(model_view);
-    model_view *= Translate(0, GROUND_LEVEL+10, 100);
-    model_view *= Scale(0.5, 20, 0.5);
-    set_color(0.753, 0.753, 0.753);
-    drawCube();
-    model_view *= Translate(0, 0.5, 0);
-    //model_view *= Scale(2, 1/20, 2);
-    model_view *= Scale(20, 0.4, 1);
-    model_view *= Translate(0, 0.5, 0);
-    set_color(0.957, 0.643, 0.376);
-    drawCube();
-    model_view = mvstack.top(); mvstack.pop();
-    
-    
-    model_view *= Translate(0, 0, 40);
-    drawMan(GROUND_LEVEL);
-    
+    drawCone();
+    model_view *= Scale(10, 10, 10);
+    drawHoop();
     glutSwapBuffers();
     
 }

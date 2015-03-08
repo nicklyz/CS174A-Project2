@@ -8,6 +8,7 @@ void generateCube(GLuint program, ShapeData* cubeData);
 void generateSphere(GLuint program, ShapeData* sphereData);
 void generateCone(GLuint program, ShapeData* coneData);
 void generateCylinder(GLuint program, ShapeData* cylData);
+void generateHoop(GLuint program, ShapeData* hoopData);
 
 //----------------------------------------------------------------------------
 // Cube
@@ -293,5 +294,100 @@ void generateCylinder(GLuint program, ShapeData* cylData)
 //----------------------------------------------------------------------------
 // My Shape: Basketball Hoop
 
-//const int numHoopDivisions = 32;
-//const int numHoopVertices = numConeDivisions * 6;
+const int numHoopDivisions = 32;
+const int numHoopVertices = numConeDivisions * 4 * 6;   // each division has four faces, each face needs 6 vertices
+
+point4 hoopPoints [numHoopVertices];
+point3 hoopNormals[numHoopVertices];
+
+void makeHoop(point4* destp, point3* destn, int numDivisions, float z1, float z2, int& Index, int dir)
+{
+    for (int i = 0; i < numDivisions; i++)
+    {
+        point3 p1(circlePoints[i].x, circlePoints[i].y, z1);
+        point3 p2(circlePoints[i].x*1.05, circlePoints[i].y*1.05, z2);
+        point3 p3(circlePoints[(i+1)%numDivisions].x, circlePoints[(i+1)%numDivisions].y, z1);
+        point3 p4(circlePoints[(i+1)%numDivisions].x*1.05, circlePoints[(i+1)%numDivisions].y*1.05, z1);
+
+        point3 n2;
+        if (dir == -1)
+        {
+            n2 = cross(p2-p3, p4-p3);
+            point3 temp = p1;
+            p1 = p3;
+            p3 = temp;
+        }
+        else
+        {
+            n2 = cross(p4-p3, p2-p3);
+        }
+        
+        point3 n1 = cross(p1-p2, p3-p2);
+        destp[Index] = p1; destn[Index] = n1; Index++;
+        destp[Index] = p2; destn[Index] = n1; Index++;
+        destp[Index] = p3; destn[Index] = n1; Index++;
+        
+        //point3 n2 = cross(p4-p3, p2-p3);
+        destp[Index] = p4; destn[Index] = n2; Index++;
+        destp[Index] = p3; destn[Index] = n2; Index++;
+        destp[Index] = p2; destn[Index] = n2; Index++;
+    }
+}
+
+void generateHoop(GLuint program, ShapeData* hoopData)
+{
+    makeCircle(circlePoints, numHoopDivisions);
+    int Index = 0;
+    
+    makeHoop(hoopPoints, hoopNormals, numHoopDivisions, 1, 1, Index, 1);
+    makeHoop(hoopPoints, hoopNormals, numHoopDivisions, -1, -1, Index, -1);
+    
+    for (int i = 0; i < numHoopDivisions; i++)
+    {
+        int i2 = (i+1)%numHoopDivisions;
+        point3 p1(circlePoints[i2].x, circlePoints[i2].y, -1);
+        point3 p2(circlePoints[i2].x, circlePoints[i2].y, 1);
+        point3 p3(circlePoints[i].x,  circlePoints[i].y,  1);
+        //point3 n = cross(p3-p2, p1-p2);
+        hoopPoints[Index] = p1; hoopNormals[Index] = point3(-p1.x, -p1.y, 0); Index++;
+        hoopPoints[Index] = p2; hoopNormals[Index] = point3(-p2.x, -p2.y, 0); Index++;
+        hoopPoints[Index] = p3; hoopNormals[Index] = point3(-p3.x, -p3.y, 0); Index++;
+        p1 = point3(circlePoints[i2].x, circlePoints[i2].y, -1);
+        p2 = point3(circlePoints[i].x,  circlePoints[i].y,  1);
+        p3 = point3(circlePoints[i].x,  circlePoints[i].y,  -1);
+        //n = cross(p3-p2, p1-p2);
+        hoopPoints[Index] = p1; hoopNormals[Index] = point3(-p1.x, -p1.y, 0); Index++;
+        hoopPoints[Index] = p2; hoopNormals[Index] = point3(-p2.x, -p2.y, 0); Index++;
+        hoopPoints[Index] = p3; hoopNormals[Index] = point3(-p3.x, -p3.y, 0); Index++;
+        
+        // outer face
+        p1 = point3(circlePoints[i2].x*1.05, circlePoints[i2].y*1.05, -1);
+        p2 = point3(circlePoints[i2].x*1.05, circlePoints[i2].y*1.05, 1);
+        p3 = point3(circlePoints[i].x*1.05,  circlePoints[i].y*1.05,  1);
+        //n = cross(p3-p2, p1-p2);
+        hoopPoints[Index] = p1; hoopNormals[Index] = point3(p1.x, p1.y, 0); Index++;
+        hoopPoints[Index] = p2; hoopNormals[Index] = point3(p2.x, p2.y, 0); Index++;
+        hoopPoints[Index] = p3; hoopNormals[Index] = point3(p3.x, p3.y, 0); Index++;
+        
+        p1 = point3(circlePoints[i2].x*1.05, circlePoints[i2].y*1.05, -1);
+        p2 = point3(circlePoints[i].x*1.05,  circlePoints[i].y*1.05,  1);
+        p3 = point3(circlePoints[i].x*1.05,  circlePoints[i].y*1.05,  -1);
+        //n = cross(p3-p2, p1-p2);
+        hoopPoints[Index] = p1; hoopNormals[Index] = point3(p1.x, p1.y, 0); Index++;
+        hoopPoints[Index] = p2; hoopNormals[Index] = point3(p2.x, p2.y, 0); Index++;
+        hoopPoints[Index] = p3; hoopNormals[Index] = point3(p3.x, p3.y, 0); Index++;
+    }
+    
+    hoopData->numVertices = numHoopVertices;
+    
+    // Create a vertex array object
+    glGenVertexArrays( 1, &hoopData->vao );
+    glBindVertexArray( hoopData->vao );
+    
+    // Set vertex attributes
+    setVertexAttrib(program,
+                    (float*)hoopPoints,  sizeof(hoopPoints),
+                    (float*)hoopNormals, sizeof(hoopNormals),
+                    0,     0);
+}
+
